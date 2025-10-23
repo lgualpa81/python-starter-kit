@@ -16,7 +16,6 @@ venv.bak/
 *.env
 *.ini
 *.cfg
-*.toml
 *.yaml
 *.yml
 
