@@ -1,0 +1,95 @@
+# === Archivos de Python ===
+__pycache__/
+*.py[cod]
+*$py.class
+
+# === Entornos virtuales ===
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# === Archivos de configuración ===
+*.env
+*.ini
+*.cfg
+*.toml
+*.yaml
+*.yml
+
+# === Archivos de dependencias ===
+pip-log.txt
+pip-delete-this-directory.txt
+poetry.lock
+Pipfile.lock
+
+# === Archivos compilados ===
+*.so
+*.dll
+*.dylib
+*.pyd
+
+# === Archivos de distribución / build ===
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+MANIFEST
+
+# === Archivos de pruebas ===
+.coverage
+.tox/
+.nox/
+.pytest_cache/
+coverage.xml
+*.cover
+htmlcov/
+
+# === IDEs y editores ===
+.vscode/
+.idea/
+.spyproject/
+.ropeproject/
+
+# === Archivos temporales del sistema ===
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.bak
+*.tmp
+
+# === Jupyter Notebooks ===
+.ipynb_checkpoints
+*.ipynb~
+
+# === Logs ===
+*.log
+logs/
+log/
+
+# === Documentación ===
+docs/_build/
+site/
+
+# === Django / Flask / FastAPI específicos ===
+*.sqlite3
+db.sqlite3
+*.db
+instance/
+*.db
+*.pot
+local_settings.py
+media/
+staticfiles/
+static/
+
+# === Otros ===
+.mypy_cache/
+.pyre/
+.pytype/
+cython_debug/
