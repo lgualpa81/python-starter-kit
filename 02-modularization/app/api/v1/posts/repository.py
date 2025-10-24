@@ -4,11 +4,15 @@ from typing import Optional, List, Tuple
 from sqlalchemy import select, func
 from sqlalchemy.orm import Session, selectinload, joinedload
 from app.models import PostORM, AuthorORM, TagORM
+from sqlalchemy.inspection import inspect
 
 
 class PostRepository:
     def __init__(self, db: Session):
         self.db = db
+
+    def orm_to_dict(self, obj):
+        return {c.key: getattr(obj, c.key) for c in inspect(obj).mapper.column_attrs}
 
     def get(self, post_id: int) -> Optional[PostORM]:
         post_find = select(PostORM).where(PostORM.id == post_id)
@@ -73,7 +77,7 @@ class PostRepository:
         author_obj = self.db.execute(
             select(AuthorORM).where(AuthorORM.email == email)
         ).scalar_one_or_none()
-
+        # print(self.orm_to_dict(author_obj))
         if author_obj:
             return author_obj
 
@@ -97,12 +101,15 @@ class PostRepository:
         self.db.flush()
         return tag_obj
 
-    def create_post(self, title: str, content: str, author: Optional[dict], tags: List[dict]) -> PostORM:
+    def create_post(self, title: str, content: str, author: Optional[dict], tags: List[dict], image_url: str) -> PostORM:
         author_obj = None
-        if author:
-            author_obj = self.ensure_author(author['name'], author['email'])
 
-        post = PostORM(title=title, content=content, author=author_obj)
+        if author:
+            author_obj = self.ensure_author(
+                author['username'], author['email'])
+
+        post = PostORM(title=title, content=content,
+                       author=author_obj, image_url=image_url)
 
         for tag in tags:
             tag_obj = self.ensure_tag(tag["name"])

@@ -1,15 +1,33 @@
-
+import asyncio
+import threading
+import time
 from math import ceil
-from fastapi import APIRouter, Query, Depends, Path, status, HTTPException
+from fastapi import APIRouter, Query, Depends, Path, status, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
-from typing import List, Optional, Union, Literal
+from typing import List, Optional, Union, Literal, Annotated
 from app.core.db import get_db
+from app.services.file_storage import save_uploaded_image
+from app.core.security import get_current_user
 from .schemas import (PostPublic, PaginatedPost,
                       PostCreate, PostUpdate, PostSummary)
 from .repository import PostRepository
 
 router = APIRouter(prefix="/posts", tags=["posts"])
+
+
+@router.get("/sync")
+def sync_endpoint():
+    print("SYNC thread: ", threading.current_thread())
+    time.sleep(8)
+    return {"message": "Sync function completed"}
+
+
+@router.get("/async")
+async def async_endpoint():
+    print("Async thread: ", threading.current_thread())
+    await asyncio.sleep(8)
+    return {"message": "Async function completed"}
 
 
 @router.get("", response_model=PaginatedPost)
@@ -104,14 +122,26 @@ def get_post(post_id: int = Path(
 
 
 @router.post("", response_model=PostPublic, response_description="Post creado (OK)", status_code=status.HTTP_201_CREATED)
-def create_post(post: PostCreate, db: Session = Depends(get_db)):
+def create_post(
+        post: Annotated[PostCreate, Depends(PostCreate.as_form)],
+        image: Optional[UploadFile] = File(None),
+        db: Session = Depends(get_db),
+        user=Depends(get_current_user)
+):
     repository = PostRepository(db)
+    saved = None
     try:
+        if image is not None:
+            saved = save_uploaded_image(image)
+        image_url = saved.get("url") if saved else None
+
         post = repository.create_post(
             title=post.title,
             content=post.content,
-            author=(post.author.model_dump() if post.author else None),
+            # author=(post.author.model_dump() if post.author else None),
+            author=user,
             tags=[tag.model_dump() for tag in post.tags],
+            image_url=image_url
         )
         db.commit()
         db.refresh(post)
@@ -120,7 +150,8 @@ def create_post(post: PostCreate, db: Session = Depends(get_db)):
         db.rollback()
         raise HTTPException(
             status_code=409, detail="El título ya existe, prueba con otro")
-    except SQLAlchemyError:
+    except SQLAlchemyError as e:
+        # print(str(e))
         db.rollback()
         raise HTTPException(status_code=500, detail="Error al crear el post")
 
